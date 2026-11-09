@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Wolf Network - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wolf-blue: #00f0ff;
+            --wolf-glow: rgba(0, 240, 255, 0.4);
+            --wolf-dark: #0a0d14;
+            --wolf-card: #121824;
+            --wolf-border: #1f293d;
+            --wolf-accent: #3b82f6;
+            --wolf-text: #e2e8f0;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--wolf-text);
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--wolf-dark);
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(0, 240, 255, 0.1), transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.1), transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: auto, auto, 30px 30px, 30px 30px;
+            background-attachment: fixed;
+        }
+        .mono { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+
+        /* Header */
+        .brand {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 26px;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--wolf-blue);
+        }
+        .tagline {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 12px;
+            border-radius: 4px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--wolf-blue);
+            color: var(--wolf-blue);
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+        .head-line { border-bottom: 1px solid var(--wolf-border); }
+
+        .btn-refresh {
+            padding: 10px 20px;
+            border: 1px solid var(--wolf-blue);
+            border-radius: 8px;
+            background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%);
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-refresh:hover { background: #fff; box-shadow: 0 0 20px var(--wolf-blue); }
+
+        /* Metric cards */
+        .metric {
+            padding: 18px 20px;
+            border-radius: 12px;
+            background: var(--wolf-card);
+            border: 1px solid var(--wolf-border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: border-color 0.3s;
+        }
+        .metric:hover { border-color: var(--wolf-blue); }
+        .metric .label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .metric .num {
+            margin-top: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            font-weight: 900;
+            line-height: 1;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        .metric.total { border-left: 4px solid var(--wolf-blue); }
+        .metric.pending { border-left: 4px solid #f59e0b; }
+        .metric.pending .num { color: #fbbf24; }
+        .metric.approved { border-left: 4px solid #10b981; }
+        .metric.approved .num { color: #34d399; }
+        .metric.rejected { border-left: 4px solid #ef4444; }
+        .metric.rejected .num { color: #f87171; }
+
+        /* Table panel */
+        .panel {
+            position: relative;
+            padding: 24px;
+            border-radius: 16px;
+            background: var(--wolf-card);
+            border: 1px solid var(--wolf-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .panel h2 {
+            display: inline-block;
+            margin-bottom: 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+        thead tr { border-bottom: 1px solid var(--wolf-border) !important; }
+        thead th { color: var(--wolf-blue) !important; font-size: 12px; font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+
+        /* Gaya baris, badge, dan tombol tabel */
+        #userTableBody { font-size: 14px; }
+        .row { border-bottom: 1px solid rgba(31, 41, 61, 0.5); transition: background 0.15s ease; }
+        .row:hover { background: rgba(0, 240, 255, 0.03); }
+        .cell-name { color: #fff; font-weight: 700; }
+        .cell-user { color: var(--wolf-blue); font-weight: 600; }
+        .cell-contact { color: #94a3b8; }
+        .cell-date { color: #64748b; }
+        .msg-empty { color: #94a3b8; }
+        .msg-error { color: #f87171; font-weight: 700; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+        .badge-ok   { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #10b981; }
+        .badge-no   { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: #ef4444; }
+        .badge-wait { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: #f59e0b; }
+
+        .act {
+            padding: 6px 12px;
+            border: 1px solid;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+        .act-approve { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #10b981; }
+        .act-approve:hover { background: #10b981; color: #000; }
+        .act-reject  { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: #f59e0b; }
+        .act-reject:hover { background: #f59e0b; color: #000; }
+        .act-drop    { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: #ef4444; }
+        .act-drop:hover { background: #ef4444; color: #fff; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto space-y-8">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center head-line pb-5">
+            <div>
+                <h1 class="brand flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full animate-pulse" style="background: var(--wolf-blue); box-shadow: 0 0 10px var(--wolf-blue);"></span>
+                    CYBER WOLF ADMIN DASHBOARD
+                </h1>
+                <p class="tagline">🐺 Network Core: wlan1-hotspot</p>
+            </div>
+            <button onclick="loadUsers()" class="btn-refresh flex items-center gap-2">
+                🔄 REFRESH DATA
+            </button>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div class="metric total">
+                <div class="label">Total Registrations</div>
+                <div class="num" id="totalCount">0</div>
+            </div>
+            <div class="metric pending">
+                <div class="label">Pending Approval</div>
+                <div class="num" id="pendingCount">0</div>
+            </div>
+            <div class="metric approved">
+                <div class="label">Approved / Active</div>
+                <div class="num" id="approvedCount">0</div>
+            </div>
+            <div class="metric rejected">
+                <div class="label">Blocked / Rejected</div>
+                <div class="num" id="rejectedCount">0</div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="panel">
+            <h2>⚡ Subscriber Active Session Table ⚡</h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 mono">
+                            <th class="p-3">USER & CREDENTIALS</th>
+                            <th class="p-3">CONTACT</th>
+                            <th class="p-3">STATUS</th>
+                            <th class="p-3">DATE REGISTERED</th>
+                            <th class="p-3 text-right">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody" class="text-xs mono">
+                        <tr>
+                            <td colspan="5" class="p-4 text-center msg-empty">Memuat data dari Upstash Redis...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            const tableBody = document.getElementById('userTableBody');
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+
+                if (!data.success || !data.users) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center msg-error">Gagal mengambil data pengguna.</td></tr>`;
+                    return;
+                }
+
+                const users = data.users;
+
+                // Update Counter
+                document.getElementById('totalCount').textContent = users.length;
+                document.getElementById('pendingCount').textContent = users.filter(u => u.status === 'pending').length;
+                document.getElementById('approvedCount').textContent = users.filter(u => u.status === 'approved').length;
+                document.getElementById('rejectedCount').textContent = users.filter(u => u.status === 'rejected').length;
+
+                if (users.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center msg-empty">Belum ada user mendaftar.</td></tr>`;
+                    return;
+                }
+
+                // Render Data Table
+                tableBody.innerHTML = users.map(user => {
+                    let statusBadge = '';
+                    if (user.status === 'approved') {
+                        statusBadge = `<span class="badge badge-ok">ACCEPTED</span>`;
+                    } else if (user.status === 'rejected') {
+                        statusBadge = `<span class="badge badge-no">REJECTED</span>`;
+                    } else {
+                        statusBadge = `<span class="badge badge-wait">PENDING</span>`;
+                    }
+
+                    const dateStr = user.createdAt ? new Date(user.createdAt).toLocaleString('id-ID') : '-';
+
+                    return `
+                        <tr class="row">
+                            <td class="p-3">
+                                <div class="cell-name">${user.name || '-'}</div>
+                                <div class="cell-user">user: ${user.username}</div>
+                            </td>
+                            <td class="p-3 cell-contact">
+                                <div>${user.email || '-'}</div>
+                                <div>${user.phone || '-'}</div>
+                            </td>
+                            <td class="p-3">${statusBadge}</td>
+                            <td class="p-3 cell-date">${dateStr}</td>
+                            <td class="p-3 text-right space-x-2">
+                                ${user.status === 'pending' ? `
+                                    <button onclick="approveUser('${user.username}')" class="act act-approve">APPROVE</button>
+                                    <button onclick="rejectUser('${user.username}')" class="act act-reject">REJECT</button>
+                                ` : ''}
+                                <button onclick="deleteUser('${user.username}')" class="act act-drop">DROP</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center msg-error">Terjadi kesalahan koneksi ke API.</td></tr>`;
+            }
+        }
+
+        async function approveUser(username) {
+            if (!confirm(`Setujui pendaftaran ${username}?`)) return;
+            try {
+                const res = await fetch('/api/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, adminName: 'Admin' })
+                });
+                const result = await res.json();
+                alert(result.message);
+                loadUsers();
+            } catch (e) {
+                alert('Gagal menyetujui user');
+            }
+        }
+
+        async function rejectUser(username) {
+            if (!confirm(`Tolak pendaftaran ${username}?`)) return;
+            try {
+                const res = await fetch('/api/reject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, adminName: 'Admin' })
+                });
+                const result = await res.json();
+                alert(result.message);
+                loadUsers();
+            } catch (e) {
+                alert('Gagal menolak user');
+            }
+        }
+
+        async function deleteUser(username) {
+            if (!confirm(`Hapus permanen user ${username}?`)) return;
+            try {
+                const res = await fetch(`/api/users/${username}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message);
+                loadUsers();
+            } catch (e) {
+                alert('Gagal menghapus user');
+            }
+        }
+
+        // Jalankan saat halaman selesai dimuat
+        document.addEventListener('DOMContentLoaded', loadUsers);
+    </script>
+</body>
+</html>
