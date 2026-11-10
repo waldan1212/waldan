@@ -213,13 +213,13 @@
                             <th class="p-3">USER & CREDENTIALS</th>
                             <th class="p-3">CONTACT</th>
                             <th class="p-3">STATUS</th>
-                            <th class="p-3">DATE REGISTERED</th>
+                            <th class="p-3">LIVE STATS (TRAFIK & UPTIME)</th>
                             <th class="p-3 text-right">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody" class="text-xs mono">
                         <tr>
-                            <td colspan="5" class="p-4 text-center msg-empty">Memuat data dari Upstash Redis...</td>
+                            <td colspan="5" class="p-4 text-center msg-empty">Memuat data dari Upstash Redis & Mikrotik...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -228,6 +228,15 @@
     </div>
 
     <script>
+        // Fungsi helper untuk mengubah byte mentah ke format MB/KB yang mudah dibaca
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
         async function loadUsers() {
             const tableBody = document.getElementById('userTableBody');
             try {
@@ -252,7 +261,7 @@
                     return;
                 }
 
-                // Render Data Table
+                // Render Data Table dengan Statistik Live Trafik & Uptime
                 tableBody.innerHTML = users.map(user => {
                     let statusBadge = '';
                     if (user.status === 'approved') {
@@ -263,7 +272,15 @@
                         statusBadge = `<span class="badge badge-wait">PENDING</span>`;
                     }
 
-                    const dateStr = user.createdAt ? new Date(user.createdAt).toLocaleString('id-ID') : '-';
+                    // Menampilkan data statistik trafik dan uptime yang ditarik dari endpoint /api/users
+                    const bytesInFormatted = formatBytes(user.bytesIn);
+                    const bytesOutFormatted = formatBytes(user.bytesOut);
+                    const uptimeVal = user.uptime || 'Off';
+
+                    const statsDisplay = user.status === 'approved' ? `
+                        <div style="color: #00f0ff;">Uptime: ${uptimeVal}</div>
+                        <div style="color: #94a3b8; font-size: 11px;">⬇️ In: ${bytesInFormatted} | ⬆️ Out: ${bytesOutFormatted}</div>
+                    ` : `<span style="color: #64748b;">-</span>`;
 
                     return `
                         <tr class="row">
@@ -276,7 +293,7 @@
                                 <div>${user.phone || '-'}</div>
                             </td>
                             <td class="p-3">${statusBadge}</td>
-                            <td class="p-3 cell-date">${dateStr}</td>
+                            <td class="p-3">${statsDisplay}</td>
                             <td class="p-3 text-right space-x-2">
                                 ${user.status === 'pending' ? `
                                     <button onclick="approveUser('${user.username}')" class="act act-approve">APPROVE</button>
@@ -338,8 +355,12 @@
             }
         }
 
-        // Jalankan saat halaman selesai dimuat
-        document.addEventListener('DOMContentLoaded', loadUsers);
+        // Jalankan saat halaman pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsers();
+            // AUTO REFRESH: Memperbarui data statistik secara real-time setiap 5 detik
+            setInterval(loadUsers, 5000);
+        });
     </script>
 </body>
 </html>
